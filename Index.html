@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD List Manager</title>
+    <meta name="description" content="A portable CRUD application to manage your list items with JSON file storage.">
+    <style>
+        /* CSS Variables for theming */
+        :root {
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --background: #ffffff;
+            --surface: #f8f9fa;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            --border-radius: 8px;
+            --transition: all 0.2s ease;
+        }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background: #1a1a1a;
+                --surface: #2d2d2d;
+                --text-primary: #ffffff;
+                --text-secondary: #b0b0b0;
+                --border-color: #404040;
+                --shadow: 0 2px 4px rgba(0,0,0,0.3);
+            }
+        }
+
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--background);
+            transition: var(--transition);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--info-color));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Form styles */
+        .form-section {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-section h2 {
+            margin-bottom: 1.5rem;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        input, select, textarea {
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            background: var(--background);
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .form-group.error input,
+        .form-group.error select,
+        .form-group.error textarea {
+            border-color: var(--danger-color);
+        }
+
+        .form-group.error .error-message {
+            display: block;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Items section */
+        .items-section {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .section-header h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .data-controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Search and filters */
+        .search-filters {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-bar {
+            margin-bottom: 1rem;
+        }
+
+        .search-bar input {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filters select {
+            min-width: 150px;
+        }
+
+        /* Items grid */
+        .items-container {
+            position: relative;
+            min-height: 200px;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            font-size: 1.1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 0;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .items-list {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .item-card {
+            background: var(--background);
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: var(--primary-color);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .item-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            flex: 1;
+            word-wrap: break-word;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-left: 1rem;
+        }
+
+        .item-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .item-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .item-category {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .item-priority {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .priority-high {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .priority-medium {
+            background-color: var(--warning-color);
+            color: #212529;
+        }
+
+        .priority-low {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .item-timestamp {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .items-stats {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background: var(--surface);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+            min-width: 300px;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left-color: var(--success-color);
+        }
+
+        .toast.error {
+            border-left-color: var(--danger-color);
+        }
+
+        .toast.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal h3 {
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .modal p {
+            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .form-section, .items-section {
+                padding: 1.5rem;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .data-controls {
+                justify-content: center;
+            }
+
+            .items-list {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filters select {
+                min-width: auto;
+            }
+
+            .toast-container {
+                left: 10px;
+                right: 10px;
+            }
+
+            .toast {
+                min-width: auto;
+                max-width: none;
+            }
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CRUD List Manager</h1>
+            <p>Portable list manager with JSON file storage - runs anywhere</p>
+        </header>
+
+        <main>
+            <!-- Add/Edit Form -->
+            <section class="form-section">
+                <h2 id="form-title">Add New Item</h2>
+                <form id="item-form" novalidate>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="title">Title *</label>
+                            <input type="text" id="title" name="title" required data-testid="input-title">
+                            <div class="error-message" id="title-error"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select id="category" name="category" data-testid="select-category">
+                                <option value="personal">Personal</option>
+                                <option value="work">Work</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" placeholder="Enter item description..." data-testid="textarea-description"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="priority">Priority</label>
+                            <select id="priority" name="priority" data-testid="select-priority">
+                                <option value="low">Low</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" data-testid="button-submit">
+                            <span id="submit-text">Add Item</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancel-btn" style="display: none;" data-testid="button-cancel">
+                            Cancel Edit
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Items List -->
+            <section class="items-section">
+                <div class="section-header">
+                    <h2>Items List</h2>
+                    <div class="data-controls">
+                        <button class="btn btn-primary" onclick="crudManager.saveToFile()" data-testid="button-save">
+                            💾 Save to File
+                        </button>
+                        <button class="btn btn-secondary" onclick="crudManager.exportData()" data-testid="button-export">
+                            📁 Export JSON
+                        </button>
+                        <input type="file" id="import-file" accept=".json" style="display: none;" data-testid="input-import">
+                        <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()" data-testid="button-import">
+                            📁 Import JSON
+                        </button>
+                        <button class="btn btn-danger" onclick="crudManager.clearAllData()" data-testid="button-clear">
+                            🗑️ Clear All
+                        </button>
+                    </div>
+                </div>
+
+                <div class="search-filters">
+                    <div class="search-bar">
+                        <input type="text" id="search-input" placeholder="Search items..." data-testid="input-search">
+                    </div>
+                    <div class="filters">
+                        <div class="filter-group">
+                            <select id="category-filter" data-testid="select-filter-category">
+                                <option value="">All Categories</option>
+                                <option value="personal">Personal</option>
+                                <option value="work">Work</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <select id="priority-filter" data-testid="select-filter-priority">
+                                <option value="">All Priorities</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="items-container" class="items-container">
+                    <div id="loading-state" class="loading-state" style="display: none;">
+                        <div class="loading-spinner">Loading items...</div>
+                    </div>
+                    
+                    <div id="empty-state" class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3>No items found</h3>
+                        <p>Add your first item using the form above to get started.</p>
+                    </div>
+                    
+                    <div id="items-list" class="items-list"></div>
+                </div>
+
+                <div class="items-stats" id="items-stats">
+                    <span data-testid="text-total-items">Total: 0 items</span>
+                </div>
+            </section>
+        </main>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <!-- Confirmation Dialog -->
+        <div id="confirm-dialog" class="modal-overlay" style="display: none;">
+            <div class="modal">
+                <h3>Confirm Delete</h3>
+                <p>Are you sure you want to delete this item? This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button id="confirm-delete" class="btn btn-danger" data-testid="button-confirm-delete">Delete</button>
+                    <button id="cancel-delete" class="btn btn-secondary" data-testid="button-cancel-delete">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CRUD List Manager - Standalone Version
+        class CRUDListManager {
+            constructor() {
+                this.items = [];
+                this.filteredItems = [];
+                this.editingId = null;
+                this.currentFilter = { search: '', category: '', priority: '' };
+                
+                this.init();
+            }
+
+            init() {
+                this.bindEvents();
+                this.loadItems();
+                this.renderItems();
+                this.updateStats();
+            }
+
+            bindEvents() {
+                // Form submission
+                document.getElementById('item-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFormSubmit();
+                });
+
+                // Cancel edit
+                document.getElementById('cancel-btn').addEventListener('click', () => {
+                    this.cancelEdit();
+                });
+
+                // Search and filters
+                document.getElementById('search-input').addEventListener('input', (e) => {
+                    this.currentFilter.search = e.target.value;
+                    this.applyFilters();
+                });
+
+                document.getElementById('category-filter').addEventListener('change', (e) => {
+                    this.currentFilter.category = e.target.value;
+                    this.applyFilters();
+                });
+
+                document.getElementById('priority-filter').addEventListener('change', (e) => {
+                    this.currentFilter.priority = e.target.value;
+                    this.applyFilters();
+                });
+
+                // File import
+                document.getElementById('import-file').addEventListener('change', (e) => {
+                    if (e.target.files[0]) {
+                        this.importData(e.target.files[0]);
+                        e.target.value = ''; // Reset file input
+                    }
+                });
+
+                // Confirmation dialog
+                document.getElementById('confirm-delete').addEventListener('click', () => {
+                    if (this.itemToDelete) {
+                        this.deleteItem(this.itemToDelete);
+                        this.hideConfirmDialog();
+                    }
+                });
+
+                document.getElementById('cancel-delete').addEventListener('click', () => {
+                    this.hideConfirmDialog();
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'n') {
+                        e.preventDefault();
+                        document.getElementById('title').focus();
+                    }
+                    if (e.ctrlKey && e.key === 'f') {
+                        e.preventDefault();
+                        document.getElementById('search-input').focus();
+                    }
+                    if (e.key === 'Escape') {
+                        this.cancelEdit();
+                        this.hideConfirmDialog();
+                    }
+                });
+            }
+
+            // Data management methods
+            loadItems() {
+                try {
+                    const stored = localStorage.getItem('crud-list-items');
+                    if (stored) {
+                        this.items = JSON.parse(stored);
+                        this.filteredItems = [...this.items];
+                    } else {
+                        this.items = [];
+                        this.filteredItems = [];
+                    }
+                } catch (error) {
+                    console.error('Error loading items:', error);
+                    this.showToast('Error loading data. Starting with empty list.', 'warning');
+                    this.items = [];
+                    this.filteredItems = [];
+                }
+            }
+
+            saveItems() {
+                try {
+                    localStorage.setItem('crud-list-items', JSON.stringify(this.items));
+                    return true;
+                } catch (error) {
+                    console.error('Error saving items:', error);
+                    this.showToast('Error saving data', 'error');
+                    return false;
+                }
+            }
+
+            // Save to downloadable JSON file
+            saveToFile() {
+                try {
+                    const dataStr = JSON.stringify(this.items, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `crud-list-data-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    this.showToast('Data saved to file successfully', 'success');
+                } catch (error) {
+                    console.error('Save to file error:', error);
+                    this.showToast('Error saving data to file', 'error');
+                }
+            }
+
+            // Form handling
+            handleFormSubmit() {
+                const formData = this.getFormData();
+                
+                if (!this.validateForm(formData)) {
+                    return;
+                }
+
+                if (this.editingId) {
+                    this.updateItem(this.editingId, formData);
+                } else {
+                    this.addItem(formData);
+                }
+
+                this.resetForm();
+                this.applyFilters();
+                this.updateStats();
+            }
+
+            getFormData() {
+                return {
+                    title: document.getElementById('title').value.trim(),
+                    description: document.getElementById('description').value.trim(),
+                    category: document.getElementById('category').value,
+                    priority: document.getElementById('priority').value
+                };
+            }
+
+            validateForm(data) {
+                let isValid = true;
+                
+                // Clear previous errors
+                document.querySelectorAll('.form-group').forEach(group => {
+                    group.classList.remove('error');
+                });
+
+                // Validate title
+                if (!data.title) {
+                    this.showFieldError('title', 'Title is required');
+                    isValid = false;
+                } else if (data.title.length < 2) {
+                    this.showFieldError('title', 'Title must be at least 2 characters');
+                    isValid = false;
+                } else if (data.title.length > 100) {
+                    this.showFieldError('title', 'Title must be less than 100 characters');
+                    isValid = false;
+                }
+
+                // Validate description length
+                if (data.description.length > 500) {
+                    this.showFieldError('description', 'Description must be less than 500 characters');
+                    isValid = false;
+                }
+
+                return isValid;
+            }
+
+            showFieldError(fieldName, message) {
+                const field = document.getElementById(fieldName);
+                const formGroup = field.closest('.form-group');
+                const errorElement = formGroup.querySelector('.error-message');
+                
+                formGroup.classList.add('error');
+                errorElement.textContent = message;
+            }
+
+            // CRUD operations
+            addItem(data) {
+                const newItem = {
+                    id: Date.now().toString(),
+                    ...data,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+
+                this.items.unshift(newItem);
+                this.saveItems();
+                this.showToast('Item added successfully', 'success');
+            }
+
+            updateItem(id, data) {
+                const index = this.items.findIndex(item => item.id === id);
+                if (index !== -1) {
+                    this.items[index] = {
+                        ...this.items[index],
+                        ...data,
+                        updatedAt: new Date().toISOString()
+                    };
+                    this.saveItems();
+                    this.showToast('Item updated successfully', 'success');
+                }
+            }
+
+            deleteItem(id) {
+                const index = this.items.findIndex(item => item.id === id);
+                if (index !== -1) {
+                    this.items.splice(index, 1);
+                    this.saveItems();
+                    this.applyFilters();
+                    this.updateStats();
+                    this.showToast('Item deleted successfully', 'success');
+                }
+            }
+
+            editItem(id) {
+                const item = this.items.find(item => item.id === id);
+                if (item) {
+                    this.editingId = id;
+                    
+                    // Populate form
+                    document.getElementById('title').value = item.title;
+                    document.getElementById('description').value = item.description || '';
+                    document.getElementById('category').value = item.category;
+                    document.getElementById('priority').value = item.priority;
+                    
+                    // Update form appearance
+                    document.getElementById('form-title').textContent = 'Edit Item';
+                    document.getElementById('submit-text').textContent = 'Update Item';
+                    document.getElementById('cancel-btn').style.display = 'inline-flex';
+                    
+                    // Scroll to form
+                    document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+                    document.getElementById('title').focus();
+                }
+            }
+
+            confirmDelete(id) {
+                this.itemToDelete = id;
+                this.showConfirmDialog();
+            }
+
+            cancelEdit() {
+                this.editingId = null;
+                this.resetForm();
+            }
+
+            resetForm() {
+                document.getElementById('item-form').reset();
+                document.getElementById('form-title').textContent = 'Add New Item';
+                document.getElementById('submit-text').textContent = 'Add Item';
+                document.getElementById('cancel-btn').style.display = 'none';
+                document.getElementById('priority').value = 'medium';
+                
+                // Clear errors
+                document.querySelectorAll('.form-group').forEach(group => {
+                    group.classList.remove('error');
+                });
+            }
+
+            // Filtering and search
+            applyFilters() {
+                let filtered = [...this.items];
+
+                // Apply search filter
+                if (this.currentFilter.search) {
+                    const searchTerm = this.currentFilter.search.toLowerCase();
+                    filtered = filtered.filter(item => 
+                        item.title.toLowerCase().includes(searchTerm) ||
+                        (item.description && item.description.toLowerCase().includes(searchTerm))
+                    );
+                }
+
+                // Apply category filter
+                if (this.currentFilter.category) {
+                    filtered = filtered.filter(item => item.category === this.currentFilter.category);
+                }
+
+                // Apply priority filter
+                if (this.currentFilter.priority) {
+                    filtered = filtered.filter(item => item.priority === this.currentFilter.priority);
+                }
+
+                this.filteredItems = filtered;
+                this.renderItems();
+            }
+
+            // Rendering
+            renderItems() {
+                const container = document.getElementById('items-list');
+                const emptyState = document.getElementById('empty-state');
+                
+                if (this.filteredItems.length === 0) {
+                    container.innerHTML = '';
+                    emptyState.style.display = 'block';
+                    return;
+                }
+
+                emptyState.style.display = 'none';
+                
+                container.innerHTML = this.filteredItems.map(item => `
+                    <div class="item-card" data-testid="card-item-${item.id}">
+                        <div class="item-header">
+                            <h3 class="item-title" data-testid="text-title-${item.id}">${this.escapeHtml(item.title)}</h3>
+                            <div class="item-actions">
+                                <button class="btn btn-small btn-secondary" onclick="crudManager.editItem('${item.id}')" data-testid="button-edit-${item.id}">
+                                    ✏️ Edit
+                                </button>
+                                <button class="btn btn-small btn-danger" onclick="crudManager.confirmDelete('${item.id}')" data-testid="button-delete-${item.id}">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                        
+                        ${item.description ? `<div class="item-description" data-testid="text-description-${item.id}">${this.escapeHtml(item.description)}</div>` : ''}
+                        
+                        <div class="item-meta">
+                            <div class="item-tags">
+                                <span class="item-category" data-testid="text-category-${item.id}">
+                                    ${this.escapeHtml(item.category)}
+                                </span>
+                                <span class="item-priority priority-${item.priority}" data-testid="text-priority-${item.id}">
+                                    ${this.escapeHtml(item.priority)}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="item-timestamp" data-testid="text-timestamp-${item.id}">
+                            Created: ${this.formatDate(item.createdAt)}
+                            ${item.updatedAt !== item.createdAt ? `<br>Updated: ${this.formatDate(item.updatedAt)}` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateStats() {
+                const total = this.items.length;
+                const filtered = this.filteredItems.length;
+                const statsElement = document.getElementById('items-stats');
+                
+                if (total === filtered) {
+                    statsElement.innerHTML = `<span data-testid="text-total-items">Total: ${total} items</span>`;
+                } else {
+                    statsElement.innerHTML = `<span data-testid="text-total-items">Showing: ${filtered} of ${total} items</span>`;
+                }
+            }
+
+            // Data import/export
+            exportData() {
+                try {
+                    const dataStr = JSON.stringify(this.items, null, 2);
+                    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                    const url = URL.createObjectURL(dataBlob);
+                    
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `crud-list-export-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    this.showToast('Data exported successfully', 'success');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    this.showToast('Error exporting data', 'error');
+                }
+            }
+
+            importData(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        
+                        if (!Array.isArray(data)) {
+                            throw new Error('Invalid file format. Expected an array of items.');
+                        }
+
+                        // Validate data structure
+                        const validItems = data.filter(item => {
+                            return item && typeof item === 'object' && 
+                                   typeof item.title === 'string' && 
+                                   item.title.trim().length > 0;
+                        });
+
+                        if (validItems.length === 0) {
+                            throw new Error('No valid items found in the file.');
+                        }
+
+                        // Process items
+                        const processedItems = validItems.map(item => ({
+                            id: item.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                            title: item.title.trim(),
+                            description: item.description || '',
+                            category: item.category || 'other',
+                            priority: item.priority || 'medium',
+                            createdAt: item.createdAt || new Date().toISOString(),
+                            updatedAt: item.updatedAt || new Date().toISOString()
+                        }));
+
+                        this.items = processedItems;
+                        this.saveItems();
+                        this.applyFilters();
+                        this.updateStats();
+                        
+                        this.showToast(`Successfully imported ${processedItems.length} items`, 'success');
+                        
+                    } catch (error) {
+                        console.error('Import error:', error);
+                        this.showToast(`Error importing data: ${error.message}`, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            clearAllData() {
+                if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                    this.items = [];
+                    this.filteredItems = [];
+                    this.saveItems();
+                    this.renderItems();
+                    this.updateStats();
+                    this.resetForm();
+                    this.showToast('All data cleared', 'success');
+                }
+            }
+
+            // UI helpers
+            showConfirmDialog() {
+                document.getElementById('confirm-dialog').style.display = 'flex';
+            }
+
+            hideConfirmDialog() {
+                document.getElementById('confirm-dialog').style.display = 'none';
+                this.itemToDelete = null;
+            }
+
+            showToast(message, type = 'info') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                
+                container.appendChild(toast);
+                
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 5000);
+            }
+
+            formatDate(dateString) {
+                return new Date(dateString).toLocaleString();
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        // Initialize the application
+        const crudManager = new CRUDListManager();
+    </script>
+</body>
+</html>
